@@ -1,0 +1,49 @@
+{% extends "base_templates/base-form-page.html" %}
+
+{% block title %}Lägg till bok{% endblock %}
+
+{% block page_header %}Lägg till bok{% endblock %}
+
+{% block page_content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <form method="post" action="{{ url_for('admin.add_book') }}" enctype="multipart/form-data">
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Titel</label>
+                        <input id="title" class="form-control" type="text" name="title">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="author" class="form-label">Författare</label>
+                        <input id="author" class="form-control" type="text" name="author">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Pris</label>
+                        <input id="price" class="form-control" type="text" name="price">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Kort beskrivning</label>
+                        <textarea id="description" class="form-control" name="description"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="image">Bild</label>
+                        <input id="image" class="form-control mb-3" type="file" name="image"/>
+                    </div>
+
+                    <div>
+                        <input class="btn btn-primary" type="submit" value="Spara">
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

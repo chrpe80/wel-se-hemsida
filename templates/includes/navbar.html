@@ -1,0 +1,113 @@
+<nav class="navbar navbar-expand-md bg-white navbar-border-bottom">
+    <div class="container-fluid">
+        <div class="w-100 d-flex flex-column align-items-center">
+
+            <a class="mb-3" href="{{ url_for('index') }}">
+                {% if logga %}
+                    <img class="img-fluid" width="110" height="110" src="{{ logga }}" alt="Logga">
+                {% endif %}
+            </a>
+
+            <button
+                    class="navbar-toggler"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navcol-1"
+            >
+                <span class="visually-hidden">Toggle navigation</span>
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div id="navcol-1" class="collapse navbar-collapse justify-content-center w-100">
+                <ul class="navbar-nav text-center">
+                    <li class="nav-item dropdown">
+                        <a
+                                class="nav-link"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                href="#"
+                        >
+                            OM OSS
+                        </a>
+
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="{{ url_for('public.pillars') }}">Grundsatser</a>
+                            <a class="dropdown-item" href="{{ url_for('public.history') }}">Historia</a>
+                            <a class="dropdown-item" href="{{ url_for('public.minestagarden') }}">Minestagården</a>
+                            <a class="dropdown-item" href="{{ url_for('public.program') }}">Program</a>
+                            <a class="dropdown-item" href="{{ url_for('public.show_center') }}">White Eagle Lodge i världen</a>
+                        </div>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a
+                                class="nav-link"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                href="#"
+                        >
+                            METODER
+                        </a>
+
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="{{ url_for('public.meditation') }}">Meditation</a>
+                            <a class="dropdown-item" href="{{ url_for('public.healing') }}">Helande</a>
+                            <a class="dropdown-item" href="{{ url_for('public.astrology') }}">Astrologi</a>
+                            <a class="dropdown-item" href="{{ url_for('public.teaching') }}">Undervisning</a>
+                        </div>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a
+                                class="nav-link"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                href="#"
+                        >
+                            PUBLIKATIONER
+                        </a>
+
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="{{ url_for('public.show_books') }}">Böcker och skrifter</a>
+                            <a class="dropdown-item" href="{{ url_for('public.show_cards') }}">Kort</a>
+                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('public.show_notifications') }}">NYHETER</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('public.membership') }}">MEDLEMSSKAP</a>
+                    </li>
+
+                    {% if not current_user.is_authenticated %}
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">LOGGA IN</a>
+                        </li>
+
+                    {% else %}
+                        <li class="nav-item dropdown">
+                            <a
+                                    class="nav-link"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                    href="#"
+                            >
+                                MEDLEM
+                            </a>
+
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="#">Polstjärnan</a>
+                            </div>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.logout') }}">LOGGA UT</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>

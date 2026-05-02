@@ -1,0 +1,21 @@
+{% extends "base_templates/base.html" %}
+
+{% block content %}
+    {% include "includes/navbar.html" %}
+    {% include "includes/flash.html" %}
+
+    <section class="py-4">
+        <div class="container-fluid">
+            <div class="row">
+
+                <div class="col-sm-12 col-md-8 col-lg-6 mx-auto p-3 bg-body rounded shadow-sm">
+
+                    <h1>{% block page_header %}{% endblock %}</h1>
+
+                    {% block page_content %}{% endblock %}
+
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base_templates/base-form-page.html" %}
+
+{% block title %}Lägg till bok{% endblock %}
+
+{% block page_header %}Lägg till bok{% endblock %}
+
+{% block page_content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <form method="post" action="{{ url_for('admin.delete_card') }}">
+                    <div class="mb-3">
+                        <label class="form-label" for="card_title">Titel</label>
+                        <select id="card_title" class="form-select" name="card_title">
+                            <option selected disabled>Välj ett alternativ</option>
+                            {% if data %}
+                                {% for item in data %}
+                                    <option value="{{ item.get('title') }}">{{ item.get('title') }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <input class="btn btn-primary" type="submit" value="Spara">
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

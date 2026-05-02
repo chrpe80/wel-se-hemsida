@@ -1,0 +1,32 @@
+{% extends "base_templates/base-form-page.html" %}
+
+{% block title %}Lägg till nyhet{% endblock %}
+
+{% block page_header %}Lägg till nyhet{% endblock %}
+
+{% block page_content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <form method="post" action="{{ url_for('admin.add_notification') }}">
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Titel</label>
+                        <input id="title" class="form-control" type="text" name="title">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Innehåll</label>
+                        <textarea id="content" class="form-control" name="content" rows="8"></textarea>
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">Spara</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

@@ -1,0 +1,19 @@
+{% extends "base_templates/base-info-page.html" %}
+
+{% block title %}Nyheter{% endblock %}
+
+{% block page_header %}Nyheter{% endblock %}
+
+{% block page_content %}
+    <div>
+        {% if notifications %}
+            {% for notification in notifications %}
+                <small>{{ notification['now'] }}</small>
+                <h4 class="mt-2">{{ notification['title'] }}</h4>
+                <p>{{ notification['content'] | safe }}</p>
+                <hr>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock %}
+

@@ -1,0 +1,33 @@
+{% extends "base_templates/base-form-page.html" %}
+
+{% block title %}Radera bild{% endblock %}
+
+{% block page_header %}Radera bild{% endblock %}
+
+{% block page_content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <form method="post" action="{{ url_for('admin.delete_image') }}">
+                    <div class="mb-3">
+                        <label class="form-label" for="key">ID</label>
+                        <select id="key" class="form-select" name="key">
+                            {% if keys %}
+                                {% for key in keys %}
+                                    <option value="{{ key }}">{{ key }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <input class="btn btn-primary" type="submit"/>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

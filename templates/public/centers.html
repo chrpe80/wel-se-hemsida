@@ -1,0 +1,48 @@
+{% extends "base_templates/base.html" %}
+
+{% block title %} Center {% endblock %}
+
+{% block content %}
+    {% include "includes/navbar.html" %}
+
+    {% if centers %}
+        <section class="py-4">
+            <div class="container-fluid">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                    {% for c in centers %}
+                        <div class="col">
+                            <div class="flip-card">
+                                <div class="flip-card-inner">
+
+                                    <!-- Front Side -->
+                                    <div class="bg-primary bg-gradient d-flex justify-content-center align-items-center flip-card-front">
+                                        <h1 class="text-light">{{ c["title"] }}</h1>
+                                    </div>
+
+                                    <!-- Back Side -->
+                                    <div class="bg-secondary-subtle p-3 d-flex flex-column justify-content-center align-items-center gap-2 flip-card-back">
+                                        <p class="py-2 border-bottom border-primary w-100">
+                                            {{ c["address"] }}
+                                        </p>
+                                        <p class="py-2 border-bottom border-primary w-100">
+                                            {{ c["email"] }}
+                                        </p>
+                                        <p class="py-2 border-bottom border-primary w-100">
+                                            +{{ c["cc"] }} {{ c["phone"] }}
+                                        </p>
+                                        {% if c["homepage"] %}
+                                            <p class="py-2 border-bottom border-primary w-100">
+                                                <a href="{{ c["homepage"] }}">Hemsida</a>
+                                            </p>
+                                        {% endif %}
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    {% endif %}
+{% endblock %}

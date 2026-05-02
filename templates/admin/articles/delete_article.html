@@ -1,0 +1,34 @@
+{% extends "base_templates/base-form-page.html" %}
+
+{% block title %}Radera artikel{% endblock %}
+
+{% block page_header %}Radera artikel{% endblock %}
+
+{% block page_content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <form method="post" action="{{ url_for('admin.delete_article') }}" id="article-form">
+                    <div class="mb-3">
+                        <label class="form-label" for="identifier">Identifierare</label>
+                        <select id="identifier" class="form-select" name="identifier">
+                            <option selected disabled>Välj ett alternativ</option>
+                            {% if identifiers %}
+                                {% for key, value in identifiers.items() %}
+                                    <option value="{{ key }}">{{ value }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <input class="btn btn-primary" type="submit" value="Spara">
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

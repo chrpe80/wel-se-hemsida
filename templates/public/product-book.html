@@ -1,0 +1,37 @@
+{% extends "base_templates/base.html" %}
+
+{% block title %} Produktsida bok {% endblock %}
+
+{% block content %}
+    {% include "includes/navbar.html" %}
+    <section class="py-4">
+        <div class="container ">
+            <div class="row">
+                <div class="col-md-1 col-lg-3"></div>
+                <div class="col-12 col-md-10 col-lg-6">
+                    {% if book %}
+                        <div class="card border-0 bg-white shadow-sm">
+                            <img
+                                    class="img-fluid card-img-top w-100 d-block"
+                                    src="data:image/jpeg;base64,{{ book['thumbnail'] }}"
+                                    alt="{{ book['title'] }}"
+                            >
+                            <div class="card-body">
+                                <span class="badge bg-primary">{{ book["price"] }} kr</span>
+                                <hr/>
+                                <h4 class="card-title">{{ book["title"] }}</h4>
+                                <small>{{ book["author"] }}</small>
+                                <hr/>
+                                <p class="card-text">{{ book["description"] }}</p>
+                                <hr/>
+                                <button class="btn btn-primary" type="button">Beställ</button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-1 col-lg-2"></div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

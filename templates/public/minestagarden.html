@@ -1,0 +1,15 @@
+{% extends "base_templates/base-info-page.html" %}
+
+{% block title %}Minestagården{% endblock %}
+
+{% block page_header %}Minestagården{% endblock %}
+
+{% block page_content %}
+    {% if article %}
+        <p>{{ article | safe }}</p>
+    {% endif %}
+
+    {% if img %}
+        <img class="img-fluid rounded" src="{{ img }}" alt="Bild för {{ title }}">
+    {% endif %}
+{% endblock %}

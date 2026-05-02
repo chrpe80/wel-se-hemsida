@@ -1,0 +1,52 @@
+{% extends "base_templates/base-form-page.html" %}
+
+{% block title %}Lägg till center{% endblock %}
+
+{% block page_header %}Lägg till center{% endblock %}
+
+{% block page_content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <form method="post" action="{{ url_for('admin.add_center') }}">
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Titel</label>
+                        <input id="title" class="form-control" type="text" name="title">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Adress</label>
+                        <input id="address" class="form-control" type="text" name="address">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input id="email" class="form-control" type="text" name="email">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cc" class="form-label">Landskod</label>
+                        <input id="cc" class="form-control" type="text" name="cc">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Telefon</label>
+                        <input id="phone" class="form-control" type="text" name="phone">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="homepage" class="form-label">Hemsida</label>
+                        <input id="homepage" class="form-control" type="text" name="homepage">
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">Spara</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
