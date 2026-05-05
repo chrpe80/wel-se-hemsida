@@ -6,9 +6,9 @@ from functools import wraps
 from io import BytesIO
 
 
-def get_thumbnail(file: bytes):
+def get_thumbnail(file: bytes, size: tuple[float, float]):
 
-    size = (650, 450)
+    size = size
 
     try:
         with Image.open(BytesIO(file)) as img:

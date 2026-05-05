@@ -73,6 +73,16 @@ def add_user():
     return render_template(template)
 
 
+@admin.route("/update-user", methods=["GET", "POST"])
+def update_user():
+    pass
+
+
+@admin.route("/delete-user", methods=["GET", "POST"])
+def delete_user():
+    pass
+
+
 @admin.route("/add-article", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -83,12 +93,21 @@ def add_article():
     if request.method == "POST":
         identifier = request.form.get("identifier")
         content = request.form.get("content")
+        image = request.files.get("image")
 
-        if not all([identifier, content]):
+        if not all([identifier, content, image]):
             flash("Alla fält måste fyllas i.")
             return render_template(template, identifiers=identifiers)
 
-        document = {"identifier": identifier, "content": content}
+        image_data = image.read()
+
+        thumbnail = get_thumbnail(image_data, (960, 540))
+
+        if thumbnail is None:
+            flash("Dokumentet sparades inte.")
+            return render_template(template)
+
+        document = {"identifier": identifier, "content": content, "thumbnail": thumbnail}
 
         try:
             insert_one(collection, document)
@@ -112,12 +131,31 @@ def update_article():
     if request.method == "POST":
         identifier = request.form.get("identifier")
         new_content = request.form.get("content")
+        image = request.files.get("image")
 
-        if not identifier or not new_content:
-            flash("Alla fält måste fyllas i.")
+        if not all([identifier, new_content]):
+            flash("Identifierare och innehåll måste fyllas i.")
             return render_template(template, identifiers=identifiers)
 
-        response = update_one(collection, "identifier", identifier, "content", new_content)
+        if not image:
+            response = update_one(collection, "identifier", identifier, content=new_content)
+
+            if not response:
+                flash("Artikeln hittades inte.")
+                return render_template(template, identifiers=identifiers)
+
+            flash("Artikeln har uppdaterats.")
+            return render_template(template, identifiers=identifiers)
+
+        image_data = image.read()
+
+        thumbnail = get_thumbnail(image_data, (960, 540))
+
+        if thumbnail is None:
+            flash("Dokumentet sparades inte.")
+            return render_template(template)
+
+        response = update_one(collection, "identifier", identifier, content=new_content, thumbnail=thumbnail)
 
         if not response:
             flash("Artikeln hittades inte.")
@@ -185,7 +223,7 @@ def add_image():
                 content_type = im.get_format_mimetype()
 
             image.seek(0)
-            upload_file_object(image, bucket, filename, content_type)
+            upload_file_object(image, bucket, filename, ContentType=content_type)
 
             flash("Bilden har laddats upp.")
             return render_template(template, identifiers_img=identifiers_img)
@@ -257,6 +295,11 @@ def add_notification():
     return render_template(template)
 
 
+@admin.route("/update-notification", methods=["GET", "POST"])
+def update_notification():
+    pass
+
+
 @admin.route("/delete-notification/", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -291,7 +334,7 @@ def add_book():
     collection = "books"
 
     if request.method == "POST":
-        title = request.form.get("title").capitalize()
+        title = request.form.get("title")
         author = request.form.get("author")
         price = request.form.get("price")
         description = request.form.get("description")
@@ -303,7 +346,7 @@ def add_book():
 
         image_data = image.read()
 
-        thumbnail = get_thumbnail(image_data)
+        thumbnail = get_thumbnail(image_data, (500, 500))
 
         if thumbnail is None:
             flash("Dokumentet sparades inte.")
@@ -327,6 +370,11 @@ def add_book():
             return render_template(template)
 
     return render_template(template)
+
+
+@admin.route("/update-book", methods=["GET", "POST"])
+def update_book():
+    pass
 
 
 @admin.route("/delete-book/", methods=["GET", "POST"])
@@ -372,7 +420,7 @@ def add_card():
 
         image_data = image.read()
 
-        thumbnail = get_thumbnail(image_data)
+        thumbnail = get_thumbnail(image_data, (960, 540))
 
         if thumbnail is None:
             flash("Dokumentet sparades inte.")
@@ -395,6 +443,11 @@ def add_card():
             return render_template(template)
 
     return render_template(template)
+
+
+@admin.route("/update-card", methods=["GET", "POST"])
+def update_card():
+    pass
 
 
 @admin.route("/delete-card/", methods=["GET", "POST"])
@@ -427,23 +480,21 @@ def delete_card():
 def add_center():
     template = "admin/center/add_center.html"
     if request.method == "POST":
-        title = request.form.get("title")
-        address = request.form.get("address")
-        email = request.form.get("email")
-        cc = request.form.get("cc")
-        phone = request.form.get("phone")
+        title = request.form.get("title", "")
+        contacts = request.form.get("contacts", "")
+        address = request.form.get("address", "")
+        email = request.form.get("email", "")
+        cc = request.form.get("cc", "")
+        phone = request.form.get("phone", "")
         homepage = request.form.get("homepage", "")
 
-        if not all([title, address, email, cc, phone]):
-            flash("Fyll i alla fält.")
-            return render_template(template)
-
-        if not cc.isnumeric() and phone.isnumeric():
-            flash("Telefonnummer och landskod måste vara numeriska.")
+        if not title:
+            flash("Titel krävs.")
             return render_template(template)
 
         data = {
             "title": title,
+            "contacts": contacts,
             "address": address,
             "email": email,
             "cc": cc,
@@ -465,3 +516,56 @@ def add_center():
             return render_template(template)
 
     return render_template(template)
+
+
+@admin.route("/update-center", methods=["GET", "POST"])
+def update_center():
+    pass
+
+
+@admin.route("/delete-center", methods=["GET", "POST"])
+def delete_center():
+    pass
+
+
+@admin.route("/add-pdf", methods=["GET", "POST"])
+def add_pdf():
+    if request.method == "POST":
+        year = request.form.get("year")
+        month = request.form.get("month")
+        file = request.files.get("pdf")
+
+        if file is None:
+            flash("Filen är None.")
+            return render_template("admin/members/add_pdf.html")
+
+        if not file.mimetype == "application/pdf":
+            flash("Filtyp måste vara pdf.")
+            return render_template("admin/members/add_pdf.html")
+
+        if not all([year, month, file]):
+            flash("Alla fält måste vara ifyllda.")
+            return render_template("admin/members/add_pdf.html")
+
+        try:
+            upload_file_object(
+                fileobject=file,
+                bucket="pdfs-406868032142-eu-north-1-an",
+                filename=f"{year}_{month}.pdf",
+                ContentType=file.content_type,
+                Metadata={"year": year, "month": month}
+            )
+
+            flash("Filen laddades upp.")
+            return render_template("admin/members/add_pdf.html")
+
+        except ClientError as e:
+            flash(e.response)
+            return render_template("admin/members/add_pdf.html")
+
+    return render_template("admin/members/add_pdf.html")
+
+
+@admin.route("/delete-pdf", methods=["GET", "POST"])
+def delete_pdf():
+    pass

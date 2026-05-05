@@ -3,7 +3,6 @@ identifiers = {
     "historia": "Historia",
     "minestagården": "Minestagården",
     "program": "Program",
-    "aktiviteter": "Aktiviteter",
     "meditation": "Meditation",
     "helande": "Helande",
     "astrologi": "Astrologi",

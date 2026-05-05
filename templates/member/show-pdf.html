@@ -1,0 +1,20 @@
+{% extends "base_templates/base.html" %}
+
+{% block title %} Admin-nav {% endblock %}
+
+{% block content %}
+    {% include "includes/navbar.html" %}
+    <section class="p-4 bg-primary-subtle">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div class="ratio ratio-16x9">
+                        <iframe class="border-0 rounded" src="/static/ballparks.pdf" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}
+

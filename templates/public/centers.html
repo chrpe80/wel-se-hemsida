@@ -11,25 +11,41 @@
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
                     {% for c in centers %}
                         <div class="col">
-                            <div class="flip-card">
-                                <div class="flip-card-inner">
+                            <div class="flip-card rounded">
+                                <div class="flip-card-inner rounded">
 
                                     <!-- Front Side -->
-                                    <div class="bg-primary bg-gradient d-flex justify-content-center align-items-center flip-card-front">
+                                    <div class="bg-primary bg-gradient d-flex justify-content-center align-items-center rounded flip-card-front">
                                         <h1 class="text-light">{{ c["title"] }}</h1>
                                     </div>
 
                                     <!-- Back Side -->
-                                    <div class="bg-secondary-subtle p-3 d-flex flex-column justify-content-center align-items-center gap-2 flip-card-back">
-                                        <p class="py-2 border-bottom border-primary w-100">
-                                            {{ c["address"] }}
-                                        </p>
-                                        <p class="py-2 border-bottom border-primary w-100">
-                                            {{ c["email"] }}
-                                        </p>
-                                        <p class="py-2 border-bottom border-primary w-100">
-                                            +{{ c["cc"] }} {{ c["phone"] }}
-                                        </p>
+                                    <div class="bg-secondary-subtle p-3 d-flex flex-column justify-content-center align-items-center gap-2 rounded flip-card-back">
+
+                                        {% if c["contacts"] %}
+                                            <p class="py-2 border-bottom border-primary w-100">
+                                                {{ c["contacts"] }}
+                                            </p>
+                                        {% endif %}
+
+                                        {% if c["address"] %}
+                                            <p class="py-2 border-bottom border-primary w-100">
+                                                {{ c["address"] }}
+                                            </p>
+                                        {% endif %}
+
+                                        {% if c["email"] %}
+                                            <p class="py-2 border-bottom border-primary w-100">
+                                                {{ c["email"] }}
+                                            </p>
+                                        {% endif %}
+
+                                        {% if c["cc"] and c["phone"] %}
+                                            <p class="py-2 border-bottom border-primary w-100">
+                                                +{{ c["cc"] }} {{ c["phone"] }}
+                                            </p>
+                                        {% endif %}
+
                                         {% if c["homepage"] %}
                                             <p class="py-2 border-bottom border-primary w-100">
                                                 <a href="{{ c["homepage"] }}">Hemsida</a>

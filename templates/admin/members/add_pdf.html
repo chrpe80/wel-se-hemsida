@@ -1,0 +1,38 @@
+{% extends "base_templates/base-form-page.html" %}
+
+{% block title %}Lägg till bild{% endblock %}
+
+{% block page_header %}Lägg till bild{% endblock %}
+
+{% block page_content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <form method="post" action="{{ url_for('admin.add_pdf') }}" enctype="multipart/form-data">
+
+                    <div class="mb-3">
+                        <label for="year" class="form-label">År</label>
+                        <input name="year" id="year" class="form-control" min="1980" max="2026" type="number"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="month" class="form-label">Månad</label>
+                        <input name="month" id="month" class="form-control" min="1" max="12" type="number"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="pdf">Fil</label>
+                        <input id="pdf" class="form-control mb-3" type="file" name="pdf"/>
+                    </div>
+
+                    <div>
+                        <input class="btn btn-primary" type="submit" value="Ladda upp"/>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

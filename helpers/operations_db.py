@@ -19,10 +19,11 @@ def find_all_in_collection(collection):
     return response
 
 
-def update_one(collection, field_to_match, value_to_match, field_name, new_content):
+def update_one(collection, field_to_match, value_to_match, **kwargs):
     col = db.get_collection(collection)
     query_filter = {field_to_match: value_to_match}
-    update_operation = {"$set": {field_name: new_content}}
+
+    update_operation = {"$set": {k: v for k, v in kwargs.items()}}
     response = col.update_one(query_filter, update_operation)
     if response.modified_count == 0:
         return False

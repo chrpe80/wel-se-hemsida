@@ -4,12 +4,12 @@ from db import s3_client
 import os
 
 
-def upload_file_object(fileobject, bucket, filename, content_type):
+def upload_file_object(fileobject, bucket, filename, **kwargs):
     s3_client.upload_fileobj(
         Fileobj=fileobject,
         Bucket=bucket,
         Key=filename,
-        ExtraArgs={'ContentType': content_type}
+        ExtraArgs={k: v for k, v in kwargs.items()}
     )
 
 

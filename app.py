@@ -10,6 +10,7 @@ from auth import auth
 from admin import admin
 from models import User
 from public import public
+from member import member
 
 load_dotenv()
 
@@ -20,6 +21,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.register_blueprint(auth)
 app.register_blueprint(admin)
 app.register_blueprint(public)
+app.register_blueprint(member)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -30,7 +32,7 @@ login_manager.login_message = "Du behöver logga in för att komma åt den här 
 
 @app.context_processor
 def inject_logo():
-    logga = {"logga": get_image_url_from_keys(["logga.png", "logga.jpg"])}
+    logga = {"logga": get_image_url_from_keys(["logga.png", "logga.jpg", "logga.jpeg"])}
     return logga
 
 

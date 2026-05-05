@@ -6,10 +6,9 @@
 
 {% block page_content %}
     {% if article %}
-        <p>{{ article | safe }}</p>
-    {% endif %}
+        <p>{{ article["content"] | safe }}</p>
 
-    {% if img %}
-        <img class="img-fluid rounded" src="{{ img }}" alt="Bild för {{ title }}">
+        <img class="img-fluid rounded" src="data:image/jpeg;base64,{{ article['thumbnail'] }}"
+             alt="Bild för {{ article['identifier'] }}">
     {% endif %}
 {% endblock %}

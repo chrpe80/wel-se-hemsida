@@ -10,7 +10,7 @@
         <div class="row">
             <div class="col">
 
-                <form method="post" action="{{ url_for('admin.add_article') }}" id="article-form">
+                <form method="post" action="{{ url_for('admin.add_article') }}" id="article-form" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label" for="identifier">Identifierare</label>
                         <select id="identifier" class="form-select" name="identifier">
@@ -27,6 +27,11 @@
                     <div class="mb-3">
                         <label class="form-label" for="content">Innehåll</label>
                         <textarea id="content" class="form-control" name="content" rows="10"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="image">Bild</label>
+                        <input id="image" class="form-control mb-3" type="file" name="image"/>
                     </div>
 
                     <div>
