@@ -9,7 +9,9 @@
             <div class="row">
                 <div class="col">
                     <div class="ratio ratio-16x9">
-                        <iframe class="border-0 rounded" src="/static/ballparks.pdf" allowfullscreen></iframe>
+                        {% if url %}
+                        <iframe class="border-0 rounded" src="{{ url }}" allowfullscreen></iframe>
+                        {% endif %}
                     </div>
                 </div>
             </div>

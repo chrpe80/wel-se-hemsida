@@ -5,15 +5,15 @@
 {% block page_header %}Polstjärnan{% endblock %}
 
 {% block page_content %}
-    <form method="post">
+    <form method="post" action="{{ url_for('member.find_pdf') }}"  enctype="multipart/form-data">
         <div class="mb-3">
-            <label class="form-label">År</label>
-            <input class="form-control" min="1980" max="2026" type="number"/>
+            <label for="year" class="form-label">År</label>
+            <input name="year" id="year" class="form-control" min="1980" max="2026" type="number"/>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Månad</label>
-            <input class="form-control" min="1" max="12" type="number"/>
+            <label for="month" class="form-label">Månad</label>
+            <input name="month" id="month" class="form-control" min="1" max="12" type="number"/>
         </div>
 
         <input class="btn btn-primary" type="submit" />

@@ -22,6 +22,7 @@ def get_contents(bucket):
     return response.get("Contents", [])
 
 
+
 def get_image_url_from_keys(keys: list):
     bucket = os.getenv("AWS_IMAGE_BUCKET_NAME")
 
