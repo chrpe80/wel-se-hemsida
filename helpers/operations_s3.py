@@ -14,13 +14,13 @@ def upload_file_object(fileobject, bucket, filename, **kwargs):
 
 
 def delete_file_object(bucket, key):
-    s3_client.delete_object(Bucket=bucket, Key=key)
+    response = s3_client.delete_object(Bucket=bucket, Key=key)
+    return response
 
 
 def get_contents(bucket):
     response = s3_client.list_objects(Bucket=bucket)
     return response.get("Contents", [])
-
 
 
 def get_image_url_from_keys(keys: list):

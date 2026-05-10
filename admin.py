@@ -1,8 +1,9 @@
-from flask import Blueprint, request, render_template, flash
+from flask import Blueprint, request, render_template, redirect, flash, url_for
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
 from pymongo.errors import DuplicateKeyError
+from bson.objectid import ObjectId
 from botocore.exceptions import ClientError
 from PIL import Image, UnidentifiedImageError
 from io import BytesIO
@@ -11,10 +12,13 @@ import os
 
 from helpers.variables import identifiers, identifiers_img
 from helpers.helper_functions import get_thumbnail, admin_required
-from helpers.operations_db import insert_one, find_all_in_collection, delete_one, update_one
+from helpers.helper_classes import Responses
+from helpers.operations_db import insert_one, find_one, find_all_in_collection, delete_one, update_one
 from helpers.operations_s3 import upload_file_object, get_contents, delete_file_object
 
 load_dotenv()
+
+r = Responses()
 
 admin = Blueprint('admin', __name__)
 
@@ -44,7 +48,7 @@ def add_user():
         phone = request.form["phone"]
 
         if not all([username, password, fname, lname, email, phone]):
-            flash("Alla fält måste fyllas i.")
+            flash(r.fields())
             return render_template(template)
 
         psw_hash = generate_password_hash(password)
@@ -63,24 +67,120 @@ def add_user():
 
         try:
             insert_one(collection, new_user)
-            flash("Användaren lades till.")
+            flash(r.operation_successful())
             return render_template(template)
 
         except DuplicateKeyError:
-            flash("Användaren finns redan.")
+            flash(r.exists("Användaren"))
             return render_template(template)
 
     return render_template(template)
 
 
 @admin.route("/update-user", methods=["GET", "POST"])
+@login_required
+@admin_required
 def update_user():
-    pass
+    all_users = find_all_in_collection("users")
+    template = "admin/users/update_user.html"
+
+    if request.method == "POST":
+        user_id = request.form.get("select_user")
+        if user_id is None:
+            flash(r.field("Användare"))
+            return render_template(template, all_users=all_users)
+
+        user = find_one("users", "_id", ObjectId(user_id))
+
+        is_admin = request.form.get("is_admin")
+        match is_admin:
+            case None:
+                is_admin = user["is_admin"]
+            case "_":
+                is_admin = request.form.get("is_admin") == "1"
+
+        username = request.form["username"]
+        match bool(username):
+            case False:
+                username = user["username"]
+
+        password = request.form["password"]
+        match bool(password):
+            case False:
+                password = user["password"]
+            case True:
+                password = generate_password_hash(password=password)
+
+        fname = request.form["fname"]
+        match bool(fname):
+            case False:
+                fname = user["fname"]
+
+        lname = request.form["lname"]
+        match bool(lname):
+            case False:
+                lname = user["lname"]
+
+        email = request.form["email"]
+        match bool(email):
+            case False:
+                email = user["email"]
+
+        phone = request.form["phone"]
+        match bool(phone):
+            case False:
+                phone = user["phone"]
+
+        try:
+            response = update_one(
+                "users",
+                "_id",
+                ObjectId(user_id),
+                is_admin=is_admin,
+                username=username,
+                password=password,
+                fname=fname,
+                lname=lname,
+                email=email,
+                phone=phone
+            )
+
+            if response:
+                flash(r.operation_successful())
+                return render_template(template, all_users=all_users)
+
+        except ClientError:
+            flash(r.operation_failed())
+            return render_template(template, all_users=all_users)
+
+    return render_template(template, all_users=all_users)
 
 
 @admin.route("/delete-user", methods=["GET", "POST"])
 def delete_user():
-    pass
+    response = find_all_in_collection("users")
+    all_users = [item for item in response if not item["is_admin"]]
+
+    if request.method == "POST":
+        user_id = request.form.get("select_user")
+        if user_id is None:
+            flash(r.field("Användare"))
+            return render_template("admin/users/delete_user.html", all_users=all_users)
+
+        try:
+            response = delete_one("users", "_id", ObjectId(user_id))
+            if response:
+                flash(r.operation_successful())
+                return redirect(url_for("admin.delete_user"))
+
+            flash(r.operation_failed())
+            return render_template("admin/users/delete_user.html", all_users=all_users)
+
+        except ClientError:
+            flash(r.operation_failed())
+            return render_template("admin/users/delete_user.html", all_users=all_users)
+
+    return render_template("admin/users/delete_user.html", all_users=all_users)
 
 
 @admin.route("/add-article", methods=["GET", "POST"])
@@ -96,7 +196,7 @@ def add_article():
         image = request.files.get("image")
 
         if not all([identifier, content, image]):
-            flash("Alla fält måste fyllas i.")
+            flash(r.fields())
             return render_template(template, identifiers=identifiers)
 
         image_data = image.read()
@@ -104,18 +204,18 @@ def add_article():
         thumbnail = get_thumbnail(image_data, (960, 540))
 
         if thumbnail is None:
-            flash("Dokumentet sparades inte.")
+            flash(r.operation_failed())
             return render_template(template)
 
         document = {"identifier": identifier, "content": content, "thumbnail": thumbnail}
 
         try:
             insert_one(collection, document)
-            flash("Artikeln lades till.")
+            flash(r.operation_successful())
             return render_template(template, identifiers=identifiers)
 
         except DuplicateKeyError:
-            flash("Artikeln finns redan.")
+            flash(r.exists("Artikeln"))
             return render_template(template, identifiers=identifiers)
 
     return render_template(template, identifiers=identifiers)
@@ -134,34 +234,32 @@ def update_article():
         image = request.files.get("image")
 
         if not all([identifier, new_content]):
-            flash("Identifierare och innehåll måste fyllas i.")
+            flash(r.field("Identifierare och innehåll"))
             return render_template(template, identifiers=identifiers)
 
         if not image:
             response = update_one(collection, "identifier", identifier, content=new_content)
 
             if not response:
-                flash("Artikeln hittades inte.")
+                flash(r.operation_failed())
                 return render_template(template, identifiers=identifiers)
 
-            flash("Artikeln har uppdaterats.")
+            flash(r.operation_successful())
             return render_template(template, identifiers=identifiers)
 
         image_data = image.read()
 
         thumbnail = get_thumbnail(image_data, (960, 540))
-
         if thumbnail is None:
-            flash("Dokumentet sparades inte.")
+            flash(r.operation_failed())
             return render_template(template)
 
         response = update_one(collection, "identifier", identifier, content=new_content, thumbnail=thumbnail)
-
         if not response:
-            flash("Artikeln hittades inte.")
+            flash(r.operation_failed())
             return render_template(template, identifiers=identifiers)
 
-        flash("Artikeln har uppdaterats.")
+        flash(r.operation_successful())
         return render_template(template, identifiers=identifiers)
 
     return render_template(template, identifiers=identifiers)
@@ -177,16 +275,15 @@ def delete_article():
         identifier = request.form.get("identifier")
 
         if not identifier:
-            flash("Identifierare saknas.")
+            flash(r.field("Identifierare"))
             return render_template(template, identifiers=identifiers)
 
         response = delete_one("articles", "identifier", identifier)
-
         if not response:
-            flash("Artikeln hittades inte.")
+            flash(r.field("Artikeln"))
             return render_template(template, identifiers=identifiers)
 
-        flash("Artikeln har raderats.")
+        flash(r.operation_successful())
         return render_template(template, identifiers=identifiers)
 
     return render_template(template, identifiers=identifiers)
@@ -203,7 +300,7 @@ def add_image():
         image = request.files.get("image")
 
         if not identifier:
-            flash("Identifierare saknas.")
+            flash(r.field("Identifierare"))
             return render_template(template)
 
         if not image:
@@ -225,15 +322,15 @@ def add_image():
             image.seek(0)
             upload_file_object(image, bucket, filename, ContentType=content_type)
 
-            flash("Bilden har laddats upp.")
+            flash(r.operation_successful())
             return render_template(template, identifiers_img=identifiers_img)
 
         except UnidentifiedImageError:
-            flash("Filen är inte en giltig bild.")
+            flash(r.operation_failed())
             return render_template(template, identifiers_img=identifiers_img)
 
         except ClientError:
-            flash("Kunde inte ladda upp bilden.")
+            flash(r.operation_failed())
             return render_template(template, identifiers_img=identifiers_img)
 
     return render_template(template, identifiers_img=identifiers_img)
@@ -250,18 +347,18 @@ def delete_image():
     if request.method == "POST":
         key = request.form.get("key")
         if not key:
-            flash("Filnamn saknas.")
+            flash(r.field("Filnamn"))
             return render_template(template, keys=keys)
 
         bucket = os.getenv("AWS_IMAGE_BUCKET_NAME")
 
         try:
             delete_file_object(bucket, key)
-            flash("Bilden har raderats.")
+            flash(r.operation_successful())
             return render_template(template, keys=keys)
 
         except ClientError:
-            flash("Kunde inte radera bilden.")
+            flash(r.operation_failed())
             return render_template(template, keys=keys)
 
     return render_template(template, keys=keys)
@@ -280,12 +377,12 @@ def add_notification():
         content = request.form.get("content")
 
         if not all([title, content]):
-            flash("Alla fält måste fyllas i.")
+            flash(r.fields())
             return render_template(template)
 
         try:
             insert_one(collection, {"now": now, "title": title, "content": content})
-            flash("Nyheten har lagts till.")
+            flash(r.operation_successful())
             return render_template(template)
 
         except DuplicateKeyError:
@@ -293,11 +390,6 @@ def add_notification():
             return render_template(template)
 
     return render_template(template)
-
-
-@admin.route("/update-notification", methods=["GET", "POST"])
-def update_notification():
-    pass
 
 
 @admin.route("/delete-notification/", methods=["GET", "POST"])
@@ -311,16 +403,16 @@ def delete_notification():
     if request.method == "POST":
         identifier = request.form.get("identifier")
         if not identifier:
-            flash("Välj ett alternativ.")
+            flash(r.option())
             return render_template(template, data=data)
 
         response = delete_one(collection, "now", identifier)
 
         if response:
-            flash("Nyheten togs bort.")
+            flash(r.operation_successful())
             return render_template(template, data=data)
 
-        flash("Nyheten togs inte bort.")
+        flash(r.operation_failed())
         return render_template(template, data=data)
 
     return render_template(template, data=data)
@@ -341,7 +433,7 @@ def add_book():
         image = request.files.get("image")
 
         if not all([title, author, price, description, image]):
-            flash("Alla fält måste fyllas i.")
+            flash(r.fields())
             return render_template(template)
 
         image_data = image.read()
@@ -349,7 +441,7 @@ def add_book():
         thumbnail = get_thumbnail(image_data, (500, 500))
 
         if thumbnail is None:
-            flash("Dokumentet sparades inte.")
+            flash(r.operation_failed())
             return render_template(template)
 
         document = {
@@ -362,19 +454,14 @@ def add_book():
 
         try:
             insert_one(collection, document)
-            flash("Dokumentet sparades.")
+            flash(r.operation_successful())
             return render_template(template)
 
         except DuplicateKeyError:
-            flash("Det finns redan ett dokument med den titeln.")
+            flash(r.exists("Dokumentet"))
             return render_template(template)
 
     return render_template(template)
-
-
-@admin.route("/update-book", methods=["GET", "POST"])
-def update_book():
-    pass
 
 
 @admin.route("/delete-book/", methods=["GET", "POST"])
@@ -387,15 +474,15 @@ def delete_book():
     if request.method == "POST":
         book_title = request.form.get("book_title")
         if not book_title:
-            flash("Välj en bok.")
+            flash(r.option())
             return render_template(template, data=data)
 
         response = delete_one(collection="books", field="title", value=book_title)
         if response:
-            flash("Boken togs bort.")
+            flash(r.operation_successful())
             return render_template(template, data=data)
 
-        flash("Boken togs inte bort.")
+        flash(r.operation_failed())
         return render_template(template, data=data)
 
     return render_template(template, data=data)
@@ -415,7 +502,7 @@ def add_card():
         image = request.files.get("image")
 
         if not all([title, artist, price, image]):
-            flash("Alla fält måste fyllas i.")
+            flash(r.fields())
             return render_template(template)
 
         image_data = image.read()
@@ -423,7 +510,7 @@ def add_card():
         thumbnail = get_thumbnail(image_data, (960, 540))
 
         if thumbnail is None:
-            flash("Dokumentet sparades inte.")
+            flash(r.operation_failed())
             return render_template(template)
 
         document = {
@@ -435,19 +522,14 @@ def add_card():
 
         try:
             insert_one(collection, document)
-            flash("Dokumentet sparades.")
+            flash(r.operation_successful())
             return render_template(template)
 
         except DuplicateKeyError:
-            flash("Det finns redan ett dokument med den titeln.")
+            flash(r.exists("Dokumentet"))
             return render_template(template)
 
     return render_template(template)
-
-
-@admin.route("/update-card", methods=["GET", "POST"])
-def update_card():
-    pass
 
 
 @admin.route("/delete-card/", methods=["GET", "POST"])
@@ -460,15 +542,15 @@ def delete_card():
     if request.method == "POST":
         card_title = request.form.get("card_title")
         if not card_title:
-            flash("Välj ett kort.")
+            flash(r.option())
             return render_template(template, data=data)
 
         response = delete_one(collection="cards", field="title", value=card_title)
         if response:
-            flash("Kortet togs bort.")
+            flash(r.operation_successful())
             return render_template(template, data=data)
 
-        flash("Kortet togs inte bort.")
+        flash(r.operation_failed())
         return render_template(template, data=data)
 
     return render_template(template, data=data)
@@ -489,7 +571,7 @@ def add_center():
         homepage = request.form.get("homepage", "")
 
         if not title:
-            flash("Titel krävs.")
+            flash(r.field("Titel"))
             return render_template(template)
 
         data = {
@@ -504,68 +586,114 @@ def add_center():
 
         try:
             insert_one("centers", document=data)
-            flash("Dokumentet laddades upp.")
+            flash(r.operation_successful())
             return render_template(template)
 
         except ClientError:
-            flash("Dokumentet laddades inte upp.")
+            flash(r.operation_failed())
             return render_template(template)
 
         except DuplicateKeyError:
-            flash("Dokumentet laddades inte upp.")
+            flash(r.operation_failed())
             return render_template(template)
 
     return render_template(template)
 
 
-@admin.route("/update-center", methods=["GET", "POST"])
-def update_center():
-    pass
-
-
 @admin.route("/delete-center", methods=["GET", "POST"])
 def delete_center():
-    pass
+    centers = find_all_in_collection("centers")
+    if request.method == "POST":
+        center_id = request.form.get("center")
+        if center_id is None:
+            flash(r.option())
+            return render_template("admin/center/delete_center.html", centers=centers)
+
+        try:
+            delete_one("centers", "_id", ObjectId(center_id))
+            flash(r.operation_successful())
+            return render_template("admin/center/delete_center.html", centers=centers)
+
+        except ClientError:
+            flash(r.operation_failed())
+            return render_template("admin/center/delete_center.html", centers=centers)
+
+    return render_template("admin/center/delete_center.html", centers=centers)
 
 
 @admin.route("/add-pdf", methods=["GET", "POST"])
 def add_pdf():
+    bucket = "pdfs-406868032142-eu-north-1-an"
+    maximum = datetime.datetime.now().year
     if request.method == "POST":
         year = request.form.get("year")
         month = request.form.get("month")
         file = request.files.get("pdf")
 
         if file is None:
-            flash("Filen är None.")
-            return render_template("admin/members/add_pdf.html")
+            flash(r.operation_failed())
+            return render_template("admin/members/add_pdf.html", maximum=maximum)
 
         if not file.mimetype == "application/pdf":
-            flash("Filtyp måste vara pdf.")
-            return render_template("admin/members/add_pdf.html")
+            flash(r.filetype("PDF"))
+            return render_template("admin/members/add_pdf.html", maximum=maximum)
 
         if not all([year, month, file]):
-            flash("Alla fält måste vara ifyllda.")
-            return render_template("admin/members/add_pdf.html")
+            flash(r.fields())
+            return render_template("admin/members/add_pdf.html", maximum=maximum)
+
+        filename = f"{year}_{month}.pdf"
+        objects = get_contents(bucket)
+        keys = [item["Key"] for item in objects]
+        if filename in keys:
+            flash(r.exists("Filnamn"))
+            return render_template("admin/members/add_pdf.html", maximum=maximum)
 
         try:
             upload_file_object(
                 fileobject=file,
-                bucket="pdfs-406868032142-eu-north-1-an",
-                filename=f"{year}_{month}.pdf",
+                bucket=bucket,
+                filename= filename,
                 ContentType=file.content_type,
                 Metadata={"year": year, "month": month}
             )
 
-            flash("Filen laddades upp.")
-            return render_template("admin/members/add_pdf.html")
+            flash(r.operation_successful())
+            return render_template("admin/members/add_pdf.html", maximum=maximum)
 
         except ClientError as e:
             flash(e.response)
-            return render_template("admin/members/add_pdf.html")
+            return render_template("admin/members/add_pdf.html", maximum=maximum)
 
-    return render_template("admin/members/add_pdf.html")
+    return render_template("admin/members/add_pdf.html", maximum=maximum)
 
 
 @admin.route("/delete-pdf", methods=["GET", "POST"])
+@login_required
+@admin_required
 def delete_pdf():
-    pass
+    bucket = os.getenv("AWS_PDF_BUCKET_NAME")
+    template = "admin/members/delete_pdf.html"
+    contents = get_contents(bucket)
+    keys = [item["Key"] for item in contents]
+
+    if request.method == "POST":
+        key = request.form.get("key")
+        if not key:
+            flash(r.field("Filnamn"))
+            return render_template(template, keys=keys)
+
+        try:
+            response = delete_file_object(bucket, key)
+            if response["ResponseMetadata"]["HTTPStatusCode"] == 204:
+                flash(r.operation_successful())
+                return redirect( url_for("admin.delete_pdf"))
+
+            flash(r.operation_failed())
+            return render_template(template, keys=keys)
+
+        except ClientError:
+            flash(r.operation_failed())
+            return render_template(template, keys=keys)
+
+    return render_template(template, keys=keys)

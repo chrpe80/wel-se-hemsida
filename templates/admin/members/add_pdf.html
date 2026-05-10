@@ -1,8 +1,8 @@
 {% extends "base_templates/base-form-page.html" %}
 
-{% block title %}Lägg till bild{% endblock %}
+{% block title %}Lägg till pdf{% endblock %}
 
-{% block page_header %}Lägg till bild{% endblock %}
+{% block page_header %}Lägg till PDF{% endblock %}
 
 {% block page_content %}
 
@@ -14,7 +14,7 @@
 
                     <div class="mb-3">
                         <label for="year" class="form-label">År</label>
-                        <input name="year" id="year" class="form-control" min="1980" max="2026" type="number"/>
+                        <input name="year" id="year" class="form-control" min="1980" max="{{ maximum }}" type="number"/>
                     </div>
 
                     <div class="mb-3">

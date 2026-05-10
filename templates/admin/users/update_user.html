@@ -1,0 +1,75 @@
+{% extends "base_templates/base-form-page.html" %}
+
+{% block title %}Uppdatera användare{% endblock %}
+
+{% block page_header %}Uppdatera användare{% endblock %}
+
+{% block page_content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <form method="post" action="{{ url_for('admin.update_user') }}">
+                    <div class="mb-3">
+                        <label for="select_user" class="form-label">Användare</label>
+                        <select id="select_user" class="form-select" name="select_user">
+                            <option disabled selected>Välj användare</option>
+                            {% if all_users %}
+                                {% for user in all_users %}
+                                    <option value="{{ user['_id'] }}">{{ user['lname'] }}, {{ user['fname'] }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label for="is_admin" class="form-label">Admin</label>
+                        <select id="is_admin" class="form-select" name="is_admin">
+                            <option disabled selected>Välj alternativ</option>
+                            <option value="0">Nej</option>
+                            <option value="1">Ja</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Användarnamn</label>
+                        <input id="username" class="form-control" type="text" name="username">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Lösenord</label>
+                        <input id="password" class="form-control" type="text" name="password">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="fname" class="form-label">Förnamn</label>
+                        <input id="fname" class="form-control" type="text" name="fname">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="lname" class="form-label">Efternamn</label>
+                        <input id="lname" class="form-control" type="text" name="lname">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-post</label>
+                        <input id="email" class="form-control" type="email" name="email">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Telefon</label>
+                        <input id="phone" class="form-control" type="tel" name="phone">
+                    </div>
+
+                    <div>
+                        <button class="btn btn-primary" type="submit">Spara</button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

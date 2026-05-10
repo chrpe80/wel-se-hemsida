@@ -8,6 +8,7 @@
     <div>
         {% if notifications %}
             {% for notification in notifications %}
+                <hr>
                 <small>{{ notification['now'] }}</small>
                 <h4 class="mt-2">{{ notification['title'] }}</h4>
                 <p>{{ notification['content'] | safe }}</p>

@@ -1,0 +1,34 @@
+{% extends "base_templates/base-form-page.html" %}
+
+{% block title %}Radera användare{% endblock %}
+
+{% block page_header %}Radera användare{% endblock %}
+
+{% block page_content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <form method="post" action="{{ url_for('admin.delete_user') }}">
+                    <div class="mb-3">
+                        <label for="select_user" class="form-label">Användare</label>
+                        <select id="select_user" class="form-select" name="select_user">
+                            <option disabled selected>Välj användare</option>
+                            {% if all_users %}
+                                {% for user in all_users %}
+                                    <option value="{{ user['_id'] }}">{{ user['lname'] }}, {{ user['fname'] }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-primary" type="submit">Spara</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

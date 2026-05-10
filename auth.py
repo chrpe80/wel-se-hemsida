@@ -31,7 +31,7 @@ def login():
 
         login_user(u)
 
-        flash("Du är inloggad")
+        flash("Du är inloggad.")
 
         if u.is_admin:
             return redirect(url_for("admin.admin_start"))

@@ -1,0 +1,30 @@
+{% extends "base_templates/base.html" %}
+
+{% block title %} Visa pdf {% endblock %}
+
+{% block content %}
+    <section class="p-4">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                <h1>Sökresultat:</h1>
+                    {% if search_result %}
+                        <ul>
+                            {% for result in search_result %}
+                                <li>
+                                    <a href="{{ result["url"] }}">
+                                        {{ result["year"] }} {{ result["month"] }}
+                                    </a>
+                                </li>
+
+                            {% endfor %}
+                        </ul>
+
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}
+

@@ -36,3 +36,10 @@ def admin_required(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def get_metadata(client, content, bucket):
+    key = content["Key"]
+    head = client.head_object(Bucket=bucket, Key=key)
+    metadata = head["Metadata"]
+    return metadata

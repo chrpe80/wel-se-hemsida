@@ -16,7 +16,10 @@
 <body class="bg-secondary-subtle bg-body">
 
 <main class="shadow">
-    {% block content %}{% endblock %}
+    {% include "includes/navbar.html" %}
+    {% include "includes/flash.html" %}
+    {% block content %}
+    {% endblock %}
 </main>
 
 <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>

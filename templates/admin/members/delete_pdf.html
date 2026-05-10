@@ -1,10 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base_templates/base-form-page.html" %}
 
-</body>
-</html>
+{% block title %}Radera PDF{% endblock %}
+
+{% block page_header %}Radera PDF{% endblock %}
+
+{% block page_content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <form method="post" action="{{ url_for('admin.delete_pdf') }}">
+                    <div class="mb-3">
+                        <label class="form-label" for="key">ID</label>
+                        <select id="key" class="form-select" name="key">
+                        <option disabled selected>Välj alternativ</option>
+                            {% if keys %}
+                                {% for key in keys %}
+                                    <option value="{{ key }}">{{ key }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <input class="btn btn-primary" type="submit"/>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

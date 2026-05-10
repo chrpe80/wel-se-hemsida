@@ -37,3 +37,18 @@ def delete_one(collection, field, value):
     if response.deleted_count == 0:
         return False
     return True
+
+
+
+# from werkzeug.security import generate_password_hash
+# doc = {
+#     "is_admin": True,
+#     "username": "admin",
+#     "password": generate_password_hash("abc123"),
+#     "fname": "Christian",
+#     "lname": "Persson",
+#     "email": "chrpe30@outlook.com",
+#     "phone": "070-2405083"
+# }
+#
+# insert_one("users", doc)
