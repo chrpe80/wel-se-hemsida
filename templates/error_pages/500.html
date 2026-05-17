@@ -1,0 +1,15 @@
+{% extends "base_templates/base-error.html" %}
+
+{% block title %}500{% endblock %}
+
+{% block content %}
+    <main class="w-75 mx-auto bg-white shadow-sm p-4">
+        <h1>500</h1>
+        <p>
+            Internt serverfel.
+        </p>
+        <a href="{{ url_for('index') }}">Tillbaka</a>
+        <hr>
+    </main>
+
+{% endblock %}

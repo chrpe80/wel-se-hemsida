@@ -48,7 +48,7 @@ def add_user():
         phone = request.form["phone"]
 
         if not all([username, password, fname, lname, email, phone]):
-            flash(r.fields())
+            flash(r.all_fields_are_required())
             return render_template(template)
 
         psw_hash = generate_password_hash(password)
@@ -71,7 +71,7 @@ def add_user():
             return render_template(template)
 
         except DuplicateKeyError:
-            flash(r.exists("Användaren"))
+            flash(r.duplicate_key("Användaren", username))
             return render_template(template)
 
     return render_template(template)
@@ -87,12 +87,12 @@ def update_user():
     if request.method == "POST":
         user_id = request.form.get("select_user")
         if user_id is None:
-            flash(r.field("Användare"))
+            flash(r.field_missing("Användare"))
             return render_template(template, all_users=all_users)
 
         user = find_one("users", "_id", ObjectId(user_id))
 
-        is_admin = request.form.get("is_admin")
+        is_admin = request.form.get("is_admin") == "1"
         match is_admin:
             case None:
                 is_admin = user["is_admin"]
@@ -131,27 +131,25 @@ def update_user():
             case False:
                 phone = user["phone"]
 
-        try:
-            response = update_one(
-                "users",
-                "_id",
-                ObjectId(user_id),
-                is_admin=is_admin,
-                username=username,
-                password=password,
-                fname=fname,
-                lname=lname,
-                email=email,
-                phone=phone
-            )
+        response = update_one(
+            "users",
+            "_id",
+            ObjectId(user_id),
+            is_admin=is_admin,
+            username=username,
+            password=password,
+            fname=fname,
+            lname=lname,
+            email=email,
+            phone=phone
+        )
 
-            if response:
-                flash(r.operation_successful())
-                return render_template(template, all_users=all_users)
-
-        except ClientError:
-            flash(r.operation_failed())
+        if response:
+            flash(r.operation_successful())
             return render_template(template, all_users=all_users)
+
+        flash(r.operation_failed())
+        return render_template(template, all_users=all_users)
 
     return render_template(template, all_users=all_users)
 
@@ -164,21 +162,16 @@ def delete_user():
     if request.method == "POST":
         user_id = request.form.get("select_user")
         if user_id is None:
-            flash(r.field("Användare"))
+            flash(r.field_missing("Användare"))
             return render_template("admin/users/delete_user.html", all_users=all_users)
 
-        try:
-            response = delete_one("users", "_id", ObjectId(user_id))
-            if response:
-                flash(r.operation_successful())
-                return redirect(url_for("admin.delete_user"))
+        response = delete_one("users", "_id", ObjectId(user_id))
+        if response:
+            flash(r.operation_successful())
+            return redirect(url_for("admin.delete_user"))
 
-            flash(r.operation_failed())
-            return render_template("admin/users/delete_user.html", all_users=all_users)
-
-        except ClientError:
-            flash(r.operation_failed())
-            return render_template("admin/users/delete_user.html", all_users=all_users)
+        flash(r.operation_failed())
+        return render_template("admin/users/delete_user.html", all_users=all_users)
 
     return render_template("admin/users/delete_user.html", all_users=all_users)
 
@@ -196,7 +189,15 @@ def add_article():
         image = request.files.get("image")
 
         if not all([identifier, content, image]):
-            flash(r.fields())
+            flash(r.all_fields_are_required())
+            return render_template(template, identifiers=identifiers)
+
+        if image is None:
+            flash(r.operation_failed())
+            return render_template(template, identifiers=identifiers)
+
+        if not image.mimetype == "image/jpeg":
+            flash(r.filetype("jpeg"))
             return render_template(template, identifiers=identifiers)
 
         image_data = image.read()
@@ -215,7 +216,7 @@ def add_article():
             return render_template(template, identifiers=identifiers)
 
         except DuplicateKeyError:
-            flash(r.exists("Artikeln"))
+            flash(r.duplicate_key('Artikeln', identifier))
             return render_template(template, identifiers=identifiers)
 
     return render_template(template, identifiers=identifiers)
@@ -234,7 +235,7 @@ def update_article():
         image = request.files.get("image")
 
         if not all([identifier, new_content]):
-            flash(r.field("Identifierare och innehåll"))
+            flash(r.fields_missing("Identifierare", "Innehåll"))
             return render_template(template, identifiers=identifiers)
 
         if not image:
@@ -275,12 +276,12 @@ def delete_article():
         identifier = request.form.get("identifier")
 
         if not identifier:
-            flash(r.field("Identifierare"))
+            flash(r.field_missing("Identifierare"))
             return render_template(template, identifiers=identifiers)
 
         response = delete_one("articles", "identifier", identifier)
         if not response:
-            flash(r.field("Artikeln"))
+            flash(r.operation_failed())
             return render_template(template, identifiers=identifiers)
 
         flash(r.operation_successful())
@@ -300,16 +301,20 @@ def add_image():
         image = request.files.get("image")
 
         if not identifier:
-            flash(r.field("Identifierare"))
-            return render_template(template)
+            flash(r.field_missing("ID"))
+            return render_template(template, identifiers_img=identifiers_img)
 
         if not image:
-            flash("Ingen bild vald.")
-            return render_template(template)
+            flash(r.field_missing("Bild"))
+            return render_template(template, identifiers_img=identifiers_img)
+
+        if not image.mimetype == "image/jpeg":
+            flash(r.filetype("jpeg"))
+            return render_template(template, identifiers_img=identifiers_img)
+
+        image_bytes = image.read()
 
         try:
-            image_bytes = image.read()
-
             with Image.open(BytesIO(image_bytes)) as im:
                 if not im.format:
                     flash("Okänt bildformat.")
@@ -319,17 +324,16 @@ def add_image():
                 filename = f"{identifier}.{im.format.lower()}"
                 content_type = im.get_format_mimetype()
 
-            image.seek(0)
-            upload_file_object(image, bucket, filename, ContentType=content_type)
+                image.seek(0)
+                upload_file_object(image, bucket, filename, ContentType=content_type)
+                flash(r.operation_successful())
+                return render_template(template, identifiers_img=identifiers_img)
 
-            flash(r.operation_successful())
-            return render_template(template, identifiers_img=identifiers_img)
-
-        except UnidentifiedImageError:
+        except ClientError:
             flash(r.operation_failed())
             return render_template(template, identifiers_img=identifiers_img)
 
-        except ClientError:
+        except UnidentifiedImageError:
             flash(r.operation_failed())
             return render_template(template, identifiers_img=identifiers_img)
 
@@ -347,19 +351,13 @@ def delete_image():
     if request.method == "POST":
         key = request.form.get("key")
         if not key:
-            flash(r.field("Filnamn"))
+            flash(r.field_missing("Filnamn"))
             return render_template(template, keys=keys)
 
         bucket = os.getenv("AWS_IMAGE_BUCKET_NAME")
-
-        try:
-            delete_file_object(bucket, key)
-            flash(r.operation_successful())
-            return render_template(template, keys=keys)
-
-        except ClientError:
-            flash(r.operation_failed())
-            return render_template(template, keys=keys)
+        delete_file_object(bucket, key)
+        flash(r.operation_successful())
+        return render_template(template, keys=keys)
 
     return render_template(template, keys=keys)
 
@@ -377,7 +375,7 @@ def add_notification():
         content = request.form.get("content")
 
         if not all([title, content]):
-            flash(r.fields())
+            flash(r.all_fields_are_required())
             return render_template(template)
 
         try:
@@ -403,7 +401,7 @@ def delete_notification():
     if request.method == "POST":
         identifier = request.form.get("identifier")
         if not identifier:
-            flash(r.option())
+            flash(r.choose_option())
             return render_template(template, data=data)
 
         response = delete_one(collection, "now", identifier)
@@ -433,7 +431,15 @@ def add_book():
         image = request.files.get("image")
 
         if not all([title, author, price, description, image]):
-            flash(r.fields())
+            flash(r.all_fields_are_required())
+            return render_template(template)
+
+        if image is None:
+            flash(r.operation_failed())
+            return render_template(template)
+
+        if not image.mimetype == "image/jpeg":
+            flash(r.filetype("jpeg"))
             return render_template(template)
 
         image_data = image.read()
@@ -458,7 +464,7 @@ def add_book():
             return render_template(template)
 
         except DuplicateKeyError:
-            flash(r.exists("Dokumentet"))
+            flash(r.duplicate_key("Dokumentet", title))
             return render_template(template)
 
     return render_template(template)
@@ -474,7 +480,7 @@ def delete_book():
     if request.method == "POST":
         book_title = request.form.get("book_title")
         if not book_title:
-            flash(r.option())
+            flash(r.choose_option())
             return render_template(template, data=data)
 
         response = delete_one(collection="books", field="title", value=book_title)
@@ -502,7 +508,15 @@ def add_card():
         image = request.files.get("image")
 
         if not all([title, artist, price, image]):
-            flash(r.fields())
+            flash(r.all_fields_are_required())
+            return render_template(template)
+
+        if image is None:
+            flash(r.operation_failed())
+            return render_template(template)
+
+        if not image.mimetype == "image/jpeg":
+            flash(r.filetype("jpeg"))
             return render_template(template)
 
         image_data = image.read()
@@ -526,7 +540,7 @@ def add_card():
             return render_template(template)
 
         except DuplicateKeyError:
-            flash(r.exists("Dokumentet"))
+            flash(r.duplicate_key("Dokumentet", title))
             return render_template(template)
 
     return render_template(template)
@@ -542,7 +556,7 @@ def delete_card():
     if request.method == "POST":
         card_title = request.form.get("card_title")
         if not card_title:
-            flash(r.option())
+            flash(r.choose_option())
             return render_template(template, data=data)
 
         response = delete_one(collection="cards", field="title", value=card_title)
@@ -571,7 +585,7 @@ def add_center():
         homepage = request.form.get("homepage", "")
 
         if not title:
-            flash(r.field("Titel"))
+            flash(r.field_missing("Titel"))
             return render_template(template)
 
         data = {
@@ -589,10 +603,6 @@ def add_center():
             flash(r.operation_successful())
             return render_template(template)
 
-        except ClientError:
-            flash(r.operation_failed())
-            return render_template(template)
-
         except DuplicateKeyError:
             flash(r.operation_failed())
             return render_template(template)
@@ -606,17 +616,16 @@ def delete_center():
     if request.method == "POST":
         center_id = request.form.get("center")
         if center_id is None:
-            flash(r.option())
+            flash(r.choose_option())
             return render_template("admin/center/delete_center.html", centers=centers)
 
-        try:
-            delete_one("centers", "_id", ObjectId(center_id))
+        response = delete_one("centers", "_id", ObjectId(center_id))
+        if response:
             flash(r.operation_successful())
             return render_template("admin/center/delete_center.html", centers=centers)
 
-        except ClientError:
-            flash(r.operation_failed())
-            return render_template("admin/center/delete_center.html", centers=centers)
+        flash(r.operation_failed())
+        return render_template("admin/center/delete_center.html", centers=centers)
 
     return render_template("admin/center/delete_center.html", centers=centers)
 
@@ -634,26 +643,26 @@ def add_pdf():
             flash(r.operation_failed())
             return render_template("admin/members/add_pdf.html", maximum=maximum)
 
-        if not file.mimetype == "application/pdf":
-            flash(r.filetype("PDF"))
+        if not all([year, month, file]):
+            flash(r.all_fields_are_required())
             return render_template("admin/members/add_pdf.html", maximum=maximum)
 
-        if not all([year, month, file]):
-            flash(r.fields())
+        if not file.mimetype == "application/pdf":
+            flash(r.filetype("PDF"))
             return render_template("admin/members/add_pdf.html", maximum=maximum)
 
         filename = f"{year}_{month}.pdf"
         objects = get_contents(bucket)
         keys = [item["Key"] for item in objects]
         if filename in keys:
-            flash(r.exists("Filnamn"))
+            flash(r.duplicate_key("Filnamn", filename))
             return render_template("admin/members/add_pdf.html", maximum=maximum)
 
         try:
             upload_file_object(
                 fileobject=file,
                 bucket=bucket,
-                filename= filename,
+                filename=filename,
                 ContentType=file.content_type,
                 Metadata={"year": year, "month": month}
             )
@@ -680,14 +689,14 @@ def delete_pdf():
     if request.method == "POST":
         key = request.form.get("key")
         if not key:
-            flash(r.field("Filnamn"))
+            flash(r.field_missing("Filnamn"))
             return render_template(template, keys=keys)
 
         try:
             response = delete_file_object(bucket, key)
             if response["ResponseMetadata"]["HTTPStatusCode"] == 204:
                 flash(r.operation_successful())
-                return redirect( url_for("admin.delete_pdf"))
+                return redirect(url_for("admin.delete_pdf"))
 
             flash(r.operation_failed())
             return render_template(template, keys=keys)

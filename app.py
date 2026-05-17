@@ -1,4 +1,6 @@
-from flask import Flask, render_template, flash
+import sentry_sdk
+import flask
+from flask import Flask, render_template
 from flask_login import LoginManager
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
@@ -12,9 +14,20 @@ from models import User
 from public import public
 from member import member
 
+import errors
+
 load_dotenv()
 
 app = Flask(__name__)
+
+sentry_sdk.init(
+    os.getenv("SENTRY_DSN"),
+    send_default_pii=True,
+    max_request_body_size="always",
+    traces_sample_rate=0,
+    send_client_reports=False,
+    auto_session_tracking=False,
+)
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 

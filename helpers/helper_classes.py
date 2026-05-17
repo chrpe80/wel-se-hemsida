@@ -1,10 +1,14 @@
 class Responses:
     @staticmethod
-    def field(field):
-        return f"{field} saknas."
+    def field_missing(field):
+        return f"'{field}' måste fyllas i."
 
     @staticmethod
-    def fields():
+    def fields_missing(field1, field2):
+        return f"Både '{field1}' och '{field2}' måste fyllas i."
+
+    @staticmethod
+    def all_fields_are_required():
         return "Alla fält måste fyllas i."
 
     @staticmethod
@@ -21,16 +25,16 @@ class Responses:
 
     @staticmethod
     def operation_failed():
-        return "Operationen lyckades inte."
+        return "Operationen misslyckades."
 
     @staticmethod
-    def exists(value):
-        return f"{value} finns redan."
+    def duplicate_key(key, value):
+        return f"{key} {value} finns redan."
 
     @staticmethod
-    def option():
+    def choose_option():
         return "Välj ett alternativ."
 
     @staticmethod
     def filetype(filetype):
-        return f"Filtyp måste vara {filetype}"
+        return f"Filtypen måste vara {filetype}."

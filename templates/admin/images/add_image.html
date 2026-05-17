@@ -15,6 +15,7 @@
                         <label class="form-label" for="identifier">ID</label>
                         <select id="identifier" class="form-select" name="identifier">
                             {% if identifiers_img %}
+                                <option disabled selected>Välj alternativ</option>
                                 {% for k, v in identifiers_img.items() %}
                                     <option value="{{ k }}">{{ v }}</option>
                                 {% endfor %}

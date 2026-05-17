@@ -1,0 +1,15 @@
+{% extends "base_templates/base-error.html" %}
+
+{% block title %}404{% endblock %}
+
+{% block content %}
+    <main class="w-75 mx-auto bg-white shadow-sm p-4">
+        <h1>404</h1>
+        <p>
+           Sidan hittades inte.
+        </p>
+        <a href="{{ url_for('index') }}">Tillbaka</a>
+        <hr>
+    </main>
+
+{% endblock %}

@@ -3,20 +3,18 @@
 {% block title %} Visa pdf {% endblock %}
 
 {% block content %}
-    {% include "includes/navbar.html" %}
-    <section class="p-4 bg-primary-subtle">
-        <div class="container">
+    <section class="bg-white p-3">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col">
                     <div class="ratio ratio-16x9">
                         {% if url %}
-                        <iframe class="border-0 rounded" src="{{ url }}" allowfullscreen></iframe>
+                        <iframe class="border-0" src="{{ url }}" allowfullscreen></iframe>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </section>
-
 {% endblock %}
 
